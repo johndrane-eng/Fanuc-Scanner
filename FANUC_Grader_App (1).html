@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="FANUC Grader">
+<meta name="theme-color" content="#080F17">
+<title>FANUC Exam Grader</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Syne:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #080F17;
+  --bg2: #0E1822;
+  --bg3: #152030;
+  --surface: rgba(255,255,255,0.05);
+  --surface2: rgba(255,255,255,0.08);
+  --border: rgba(255,255,255,0.08);
+  --border2: rgba(255,255,255,0.14);
+  --accent: #00D4FF;
+  --accent2: #0099CC;
+  --accent-glow: rgba(0,212,255,0.15);
+  --accent-dim: rgba(0,212,255,0.08);
+  --green: #10B981;
+  --green-dim: rgba(16,185,129,0.12);
+  --red: #F43F5E;
+  --red-dim: rgba(244,63,94,0.12);
+  --amber: #FBBF24;
+  --amber-dim: rgba(251,191,36,0.12);
+  --text: #ECF2F8;
+  --text2: #7B96AA;
+  --text3: #3D5566;
+  --r: 14px;
+  --r-sm: 10px;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+html, body {
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Syne', sans-serif;
+  overflow-x: hidden;
+  overscroll-behavior: none;
+}
+
+/* ── SCREEN SYSTEM ── */
+.screen {
+  display: none;
+  flex-direction: column;
+  min-height: 100dvh;
+  padding-top: calc(var(--safe-top) + 16px);
+  padding-bottom: calc(var(--safe-bottom) + 24px);
+  padding-left: 20px;
+  padding-right: 20px;
+  animation: fadeUp 0.3s ease both;
+}
+.screen.active { display: flex; }
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── TOP BAR ── */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 28px;
+}
+.topbar-logo {
+  display: flex; flex-direction: column; gap: 1px;
+}
+.topbar-eyebrow {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  color: var(--accent);
+  text-transform: uppercase;
+}
+.topbar-title {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text);
+}
+.topbar-badge {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  padding: 4px 10px;
+  border-radius: 100px;
+  background: var(--accent-dim);
+  border: 1px solid rgba(0,212,255,0.2);
+  color: var(--accent);
+  letter-spacing: 0.08em;
+}
+
+/* ── CARDS ── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 18px;
+  margin-bottom: 12px;
+}
+.card-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.16em;
+  color: var(--accent);
+  text-transform: uppercase;
+  margin-bottom: 14px;
+  display: flex; align-items: center; gap: 6px;
+}
+.card-label::before {
+  content: '';
+  display: inline-block;
+  width: 4px; height: 4px;
+  border-radius: 50%;
+  background: var(--accent);
+  flex-shrink: 0;
+}
+
+/* ── HOME SCREEN ── */
+.hero {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 20px 0 32px;
+}
+.hero-ring {
+  width: 96px; height: 96px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(0,212,255,0.2);
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 24px;
+  position: relative;
+}
+.hero-ring::before {
+  content: '';
+  position: absolute;
+  inset: -8px;
+  border-radius: 50%;
+  border: 1px solid rgba(0,212,255,0.08);
+}
+.hero-ring svg { width: 40px; height: 40px; stroke: var(--accent); }
+.hero-title {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+.hero-sub {
+  font-size: 13px;
+  color: var(--text2);
+  line-height: 1.6;
+  max-width: 280px;
+  margin: 0 auto 32px;
+}
+
+/* ── BUTTONS ── */
+.btn-primary {
+  width: 100%;
+  padding: 16px;
+  background: var(--accent);
+  color: var(--bg);
+  border: none;
+  border-radius: var(--r);
+  font-family: 'Syne', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  transition: all 0.18s;
+  -webkit-appearance: none;
+}
+.btn-primary:active { transform: scale(0.97); background: var(--accent2); }
+.btn-primary:disabled { background: var(--bg3); color: var(--text3); }
+.btn-primary svg { width: 18px; height: 18px; stroke: var(--bg); flex-shrink: 0; }
+
+.btn-secondary {
+  width: 100%;
+  padding: 14px;
+  background: transparent;
+  color: var(--text2);
+  border: 1px solid var(--border2);
+  border-radius: var(--r);
+  font-family: 'Syne', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  transition: all 0.18s;
+  -webkit-appearance: none;
+  margin-top: 10px;
+}
+.btn-secondary:active { background: var(--surface2); }
+.btn-secondary svg { width: 16px; height: 16px; stroke: currentColor; }
+
+.btn-ghost {
+  background: none; border: none;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  color: var(--text3);
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  padding: 8px 0;
+  -webkit-appearance: none;
+}
+
+/* ── CAMERA SCREEN ── */
+.camera-wrap {
+  flex: 1;
+  position: relative;
+  border-radius: var(--r);
+  overflow: hidden;
+  background: #000;
+  min-height: 55vw;
+  margin-bottom: 16px;
+}
+#video {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.camera-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+.scan-frame {
+  width: 85%;
+  aspect-ratio: 8.5 / 11;
+  border: 2px solid var(--accent);
+  border-radius: 8px;
+  box-shadow: 0 0 0 9999px rgba(0,0,0,0.55);
+  position: relative;
+}
+.scan-frame::before, .scan-frame::after,
+.scan-frame .corner-bl, .scan-frame .corner-br {
+  content: '';
+  position: absolute;
+  width: 20px; height: 20px;
+  border-color: var(--accent);
+  border-style: solid;
+}
+.scan-frame::before    { top:-2px;    left:-2px;  border-width:3px 0 0 3px; border-radius:6px 0 0 0; }
+.scan-frame::after     { top:-2px;    right:-2px; border-width:3px 3px 0 0; border-radius:0 6px 0 0; }
+.scan-frame .corner-bl { bottom:-2px; left:-2px;  border-width:0 0 3px 3px; border-radius:0 0 0 6px; }
+.scan-frame .corner-br { bottom:-2px; right:-2px; border-width:0 3px 3px 0; border-radius:0 0 6px 0; }
+
+.scan-hint {
+  position: absolute;
+  bottom: -32px;
+  left: 0; right: 0;
+  text-align: center;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  color: var(--accent);
+  letter-spacing: 0.1em;
+}
+
+.shutter-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 12px;
+  margin-bottom: 16px;
+}
+.shutter-btn {
+  width: 72px; height: 72px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 4px solid rgba(0,212,255,0.3);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s;
+  -webkit-appearance: none;
+  box-shadow: 0 0 24px var(--accent-glow);
+}
+.shutter-btn:active { transform: scale(0.92); }
+.shutter-btn svg { width: 28px; height: 28px; stroke: var(--bg); }
+
+.flip-btn {
+  width: 48px; height: 48px;
+  border-radius: 50%;
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  -webkit-appearance: none;
+}
+.flip-btn svg { width: 20px; height: 20px; stroke: var(--text2); }
+
+#canvas { display: none; }
+
+/* ── PREVIEW SCREEN ── */
+.preview-wrap {
+  flex: 1;
+  border-radius: var(--r);
+  overflow: hidden;
+  margin-bottom: 16px;
+  position: relative;
+  background: #000;
+  min-height: 55vw;
+}
+#captured-img {
+  width: 100%; height: 100%;
+  object-fit: contain;
+  display: block;
+}
+.retake-overlay {
+  position: absolute;
+  top: 10px; right: 10px;
+}
+.retake-pill {
+  background: rgba(0,0,0,0.6);
+  border: 1px solid var(--border2);
+  border-radius: 100px;
+  padding: 6px 14px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  color: var(--text2);
+  cursor: pointer;
+  -webkit-appearance: none;
+  letter-spacing: 0.08em;
+}
+
+/* ── NAME INPUT ── */
+.name-input {
+  width: 100%;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  color: var(--text);
+  font-family: 'Syne', sans-serif;
+  font-size: 15px;
+  padding: 14px 16px;
+  outline: none;
+  transition: border-color 0.2s;
+  -webkit-appearance: none;
+}
+.name-input:focus { border-color: var(--accent); }
+.name-input::placeholder { color: var(--text3); }
+
+/* ── GRADING SCREEN ── */
+.grading-center {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 20px;
+}
+.spinner-ring {
+  width: 64px; height: 64px;
+  border-radius: 50%;
+  border: 2px solid var(--bg3);
+  border-top-color: var(--accent);
+  animation: spin 0.75s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.grading-label {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text);
+}
+.grading-sub {
+  font-size: 12px;
+  color: var(--text2);
+  line-height: 1.6;
+  max-width: 240px;
+}
+.progress-dots {
+  display: flex; gap: 6px;
+}
+.dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--bg3);
+  animation: dotPulse 1.4s ease-in-out infinite;
+}
+.dot:nth-child(2) { animation-delay: 0.2s; }
+.dot:nth-child(3) { animation-delay: 0.4s; }
+@keyframes dotPulse {
+  0%,80%,100% { background: var(--bg3); }
+  40% { background: var(--accent); }
+}
+
+/* ── RESULTS SCREEN ── */
+.results-scroll { flex: 1; overflow-y: auto; }
+
+.score-hero {
+  text-align: center;
+  padding: 24px 0 20px;
+  margin-bottom: 12px;
+}
+.score-name {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  color: var(--text3);
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+.score-ring {
+  width: 120px; height: 120px;
+  border-radius: 50%;
+  margin: 0 auto 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid;
+  position: relative;
+}
+.score-ring.pass { border-color: var(--green); box-shadow: 0 0 30px rgba(16,185,129,0.2); }
+.score-ring.fail { border-color: var(--red);   box-shadow: 0 0 30px rgba(244,63,94,0.2); }
+.score-pct {
+  font-size: 36px;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  line-height: 1;
+}
+.score-ring.pass .score-pct { color: var(--green); }
+.score-ring.fail .score-pct { color: var(--red); }
+.score-label { font-size: 11px; color: var(--text2); margin-top: 2px; }
+
+.verdict {
+  display: inline-flex;
+  align-items: center; gap: 6px;
+  padding: 6px 18px;
+  border-radius: 100px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+}
+.verdict.pass { background: var(--green-dim); border: 1px solid rgba(16,185,129,0.25); color: var(--green); }
+.verdict.fail { background: var(--red-dim);   border: 1px solid rgba(244,63,94,0.25);  color: var(--red); }
+.verdict svg { width: 12px; height: 12px; stroke: currentColor; }
+
+/* Metric pills */
+.metric-row { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin-bottom: 12px; }
+.metric-pill {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  padding: 14px 10px;
+  text-align: center;
+}
+.metric-val { font-size: 24px; font-weight: 700; letter-spacing: -0.02em; }
+.metric-lbl { font-size: 10px; color: var(--text3); margin-top: 2px; letter-spacing: 0.04em; }
+
+/* Section bars */
+.sec-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.sec-name { font-size: 11px; color: var(--text2); flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bar-wrap { width: 80px; flex-shrink: 0; }
+.bar-bg { height: 5px; background: var(--bg3); border-radius: 3px; overflow: hidden; }
+.bar-fg { height: 5px; border-radius: 3px; transition: width 0.7s cubic-bezier(.16,1,.3,1); }
+.bar-fg.good { background: var(--green); }
+.bar-fg.mid  { background: var(--amber); }
+.bar-fg.low  { background: var(--red); }
+.sec-frac { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--text3); width: 30px; text-align: right; flex-shrink: 0; }
+
+/* Q grid */
+.q-grid { display: grid; grid-template-columns: repeat(5,1fr); gap: 5px; }
+.q-cell {
+  border-radius: 8px;
+  padding: 7px 4px;
+  text-align: center;
+  border: 1px solid transparent;
+}
+.q-cell.correct  { background: var(--green-dim); border-color: rgba(16,185,129,0.2); }
+.q-cell.incorrect{ background: var(--red-dim);   border-color: rgba(244,63,94,0.2); }
+.q-cell.blank    { background: var(--surface);   border-color: var(--border); }
+.q-n { font-family: 'IBM Plex Mono', monospace; font-size: 8px; color: var(--text3); display: block; }
+.q-a { font-size: 13px; font-weight: 700; display: block; margin-top: 1px; }
+.q-cell.correct   .q-a { color: var(--green); }
+.q-cell.incorrect .q-a { color: var(--red); }
+.q-cell.blank     .q-a { color: var(--text3); }
+.q-fix { font-size: 8px; color: var(--text3); display: block; font-family: 'IBM Plex Mono', monospace; }
+
+.legend-row { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 10px; }
+.legend-item { display: flex; align-items: center; gap: 5px; font-size: 10px; color: var(--text2); }
+.legend-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+
+.notes-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  padding: 12px 14px;
+  font-size: 12px;
+  color: var(--text2);
+  line-height: 1.7;
+  margin-top: 6px;
+}
+
+/* Error toast */
+.toast {
+  display: none;
+  position: fixed;
+  bottom: calc(var(--safe-bottom) + 20px);
+  left: 20px; right: 20px;
+  background: var(--red-dim);
+  border: 1px solid rgba(244,63,94,0.25);
+  border-radius: var(--r-sm);
+  padding: 14px 16px;
+  font-size: 13px;
+  color: var(--red);
+  z-index: 100;
+  animation: fadeUp 0.2s ease both;
+}
+
+/* Dividers */
+.divider { height: 1px; background: var(--border); margin: 16px 0; }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════ HOME ═══ -->
+<div class="screen active" id="screen-home">
+  <div class="topbar">
+    <div class="topbar-logo">
+      <div class="topbar-eyebrow">OCTC Workforce Solutions</div>
+      <div class="topbar-title">FANUC Grader</div>
+    </div>
+    <div class="topbar-badge">50 Q</div>
+  </div>
+
+  <div class="hero">
+    <div class="hero-ring">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+        <circle cx="12" cy="13" r="4"/>
+      </svg>
+    </div>
+    <div class="hero-title">Scan &amp; Grade</div>
+    <div class="hero-sub">Point your camera at a completed FANUC exam bubble sheet for instant AI grading.</div>
+  </div>
+
+  <button class="btn-primary" onclick="startCamera()">
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+      <circle cx="12" cy="13" r="4"/>
+    </svg>
+    Open Camera
+  </button>
+
+  <button class="btn-secondary" onclick="document.getElementById('upload-input').click()">
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+      <polyline points="17 8 12 3 7 8"/>
+      <line x1="12" y1="3" x2="12" y2="15"/>
+    </svg>
+    Upload from Gallery
+  </button>
+  <input type="file" id="upload-input" accept="image/*" style="display:none" onchange="handleUpload(event)">
+</div>
+
+<!-- ═══════════════════════════════════════ CAMERA ═══ -->
+<div class="screen" id="screen-camera">
+  <div class="topbar">
+    <button class="btn-ghost" onclick="stopCamera(); showScreen('home')">← Back</button>
+    <div class="topbar-eyebrow" style="text-align:right">Align sheet in frame</div>
+  </div>
+
+  <div class="camera-wrap" id="camera-wrap">
+    <video id="video" autoplay playsinline muted></video>
+    <div class="camera-overlay">
+      <div class="scan-frame">
+        <div class="corner-bl"></div>
+        <div class="corner-br"></div>
+        <div class="scan-hint">BUBBLE SHEET</div>
+      </div>
+    </div>
+  </div>
+
+  <canvas id="canvas"></canvas>
+
+  <div class="shutter-row">
+    <div style="width:48px"></div>
+    <button class="shutter-btn" onclick="capturePhoto()">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"/>
+        <circle cx="12" cy="12" r="4" fill="currentColor" stroke="none" style="fill:var(--bg)"/>
+      </svg>
+    </button>
+    <button class="flip-btn" onclick="flipCamera()">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M1 4v6h6"/><path d="M23 20v-6h-6"/>
+        <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4-4.64 4.36A9 9 0 0 1 3.51 15"/>
+      </svg>
+    </button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════ PREVIEW ═══ -->
+<div class="screen" id="screen-preview">
+  <div class="topbar">
+    <button class="btn-ghost" onclick="retakePhoto()">← Retake</button>
+    <div class="topbar-eyebrow" style="text-align:right">Confirm &amp; Grade</div>
+  </div>
+
+  <div class="preview-wrap">
+    <img id="captured-img" alt="Captured bubble sheet">
+    <div class="retake-overlay">
+      <button class="retake-pill" onclick="retakePhoto()">Retake</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-label">Student name</div>
+    <input type="text" class="name-input" id="student-name" placeholder="Optional — appears on report">
+  </div>
+
+  <button class="btn-primary" id="grade-btn" onclick="gradeExam()">
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+    </svg>
+    Grade Exam
+  </button>
+</div>
+
+<!-- ═══════════════════════════════════════ GRADING ═══ -->
+<div class="screen" id="screen-grading">
+  <div class="topbar">
+    <div class="topbar-logo">
+      <div class="topbar-eyebrow">OCTC Workforce Solutions</div>
+      <div class="topbar-title">FANUC Grader</div>
+    </div>
+  </div>
+  <div class="grading-center">
+    <div class="spinner-ring"></div>
+    <div class="grading-label">Analyzing bubble sheet…</div>
+    <div class="grading-sub">AI is reading each filled bubble and scoring against the answer key</div>
+    <div class="progress-dots">
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════ RESULTS ═══ -->
+<div class="screen" id="screen-results">
+  <div class="topbar">
+    <button class="btn-ghost" onclick="newScan()">← New scan</button>
+    <div class="topbar-badge" id="results-badge">—</div>
+  </div>
+
+  <div class="results-scroll">
+    <!-- Score hero -->
+    <div class="score-hero">
+      <div class="score-name" id="r-name">Student</div>
+      <div class="score-ring" id="score-ring">
+        <div class="score-pct" id="r-pct">—</div>
+        <div class="score-label">Score</div>
+      </div>
+      <div id="r-verdict"></div>
+    </div>
+
+    <!-- Metrics -->
+    <div class="metric-row">
+      <div class="metric-pill">
+        <div class="metric-val" id="m-correct" style="color:var(--green)">—</div>
+        <div class="metric-lbl">Correct</div>
+      </div>
+      <div class="metric-pill">
+        <div class="metric-val" id="m-incorrect" style="color:var(--red)">—</div>
+        <div class="metric-lbl">Incorrect</div>
+      </div>
+      <div class="metric-pill">
+        <div class="metric-val" id="m-blank" style="color:var(--amber)">—</div>
+        <div class="metric-lbl">Blank</div>
+      </div>
+    </div>
+
+    <!-- Section bars -->
+    <div class="card">
+      <div class="card-label">By section</div>
+      <div id="sec-bars"></div>
+    </div>
+
+    <!-- Q grid -->
+    <div class="card">
+      <div class="card-label">All 50 questions</div>
+      <div class="q-grid" id="q-grid"></div>
+      <div class="legend-row">
+        <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div>Correct</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--red)"></div>Wrong (→ correct)</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--bg3)"></div>Blank</div>
+      </div>
+    </div>
+
+    <!-- Notes -->
+    <div class="card" id="notes-card" style="display:none">
+      <div class="card-label">Scan notes</div>
+      <div class="notes-box" id="notes-box"></div>
+    </div>
+
+    <button class="btn-primary" onclick="newScan()" style="margin-top:4px;">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+        <circle cx="12" cy="13" r="4"/>
+      </svg>
+      Grade Another Sheet
+    </button>
+  </div>
+</div>
+
+<!-- Error toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+const ANSWER_KEY = [1,1,2,2,2,0,2,1,1,2,1,1,0,1,1,1,1,1,0,2,1,1,0,1,2,2,1,1,1,2,1,0,1,1,1,1,1,1,1,1,1,2,1,1,1,2,1,2,1,2];
+const LETTERS = ['A','B','C','D'];
+const SECTIONS = [
+  {name:'Safety & Compliance', start:0,  end:9},
+  {name:'Programming',         start:10, end:24},
+  {name:'Operations',          start:25, end:37},
+  {name:'Maintenance',         start:38, end:45},
+  {name:'I/O & Communications',start:46, end:49},
+];
+
+let stream = null;
+let facingMode = 'environment'; // rear camera by default
+let capturedBase64 = null;
+let capturedMime = 'image/jpeg';
+
+// ── SCREEN ROUTER ──────────────────────────────────────
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + name).classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+// ── CAMERA ─────────────────────────────────────────────
+async function startCamera() {
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode, width: { ideal: 1920 }, height: { ideal: 1080 } },
+      audio: false
+    });
+    const video = document.getElementById('video');
+    video.srcObject = stream;
+    showScreen('camera');
+  } catch(e) {
+    showToast('Camera access denied. Please allow camera permission and try again.');
+  }
+}
+
+function stopCamera() {
+  if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
+}
+
+async function flipCamera() {
+  facingMode = facingMode === 'environment' ? 'user' : 'environment';
+  stopCamera();
+  await startCamera();
+}
+
+function capturePhoto() {
+  const video = document.getElementById('video');
+  const canvas = document.getElementById('canvas');
+  canvas.width  = video.videoWidth  || 1280;
+  canvas.height = video.videoHeight || 720;
+  const ctx = canvas.getContext('2d');
+
+  // Flip horizontally if using front camera
+  if (facingMode === 'user') {
+    ctx.translate(canvas.width, 0);
+    ctx.scale(-1, 1);
+  }
+  ctx.drawImage(video, 0, 0);
+
+  capturedMime = 'image/jpeg';
+  const dataURL = canvas.toDataURL(capturedMime, 0.92);
+  capturedBase64 = dataURL.split(',')[1];
+
+  document.getElementById('captured-img').src = dataURL;
+  stopCamera();
+  showScreen('preview');
+}
+
+// ── GALLERY UPLOAD ──────────────────────────────────────
+function handleUpload(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  capturedMime = file.type || 'image/jpeg';
+  const reader = new FileReader();
+  reader.onload = ev => {
+    const data = ev.target.result;
+    capturedBase64 = data.split(',')[1];
+    document.getElementById('captured-img').src = data;
+    showScreen('preview');
+  };
+  reader.readAsDataURL(file);
+  e.target.value = '';
+}
+
+function retakePhoto() {
+  capturedBase64 = null;
+  startCamera();
+}
+
+// ── GRADE ───────────────────────────────────────────────
+async function gradeExam() {
+  if (!capturedBase64) return;
+  const studentName = document.getElementById('student-name').value.trim() || 'Student';
+  document.getElementById('student-name').value = '';
+  showScreen('grading');
+
+  const prompt = `You are grading a FANUC Material Handling Pro NOCTI practice exam bubble sheet.
+
+The answer sheet has 50 questions, each with bubbles labeled A, B, C, D arranged in two columns (questions 1-25 on the left, 26-50 on the right).
+
+Carefully examine the image and identify which bubble is filled in for each question 1 through 50.
+
+Return ONLY a valid JSON object — no other text, no markdown fences:
+{"answers":["A","B","C","D",...],"notes":"Brief observations about scan quality or ambiguous marks"}
+
+The "answers" array must have exactly 50 entries. Use null for blank or unclear questions.`;
+
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{
+          role: 'user',
+          content: [
+            { type: 'image', source: { type: 'base64', media_type: capturedMime, data: capturedBase64 } },
+            { type: 'text', text: prompt }
+          ]
+        }]
+      })
+    });
+
+    if (!resp.ok) throw new Error('API error ' + resp.status);
+    const data = await resp.json();
+    const raw = data.content.filter(b => b.type === 'text').map(b => b.text).join('');
+    const clean = raw.replace(/```json|```/g,'').trim();
+    const parsed = JSON.parse(clean);
+    if (!Array.isArray(parsed.answers) || parsed.answers.length !== 50) throw new Error('Bad response');
+    renderResults(parsed.answers, parsed.notes || '', studentName);
+  } catch(err) {
+    showScreen('preview');
+    showToast('Could not read the sheet. Try better lighting or a flatter page. (' + err.message + ')');
+  }
+}
+
+// ── RENDER RESULTS ──────────────────────────────────────
+function renderResults(answers, notes, studentName) {
+  let correct = 0, incorrect = 0, blank = 0;
+  const results = answers.map((ans, i) => {
+    const key = LETTERS[ANSWER_KEY[i]];
+    if (!ans) { blank++; return { ans: null, correct: false, blank: true, key }; }
+    const up = String(ans).toUpperCase();
+    const ok = up === key;
+    if (ok) correct++; else incorrect++;
+    return { ans: up, correct: ok, blank: false, key };
+  });
+
+  const pct = Math.round(correct / 50 * 100);
+  const pass = pct >= 70;
+
+  // Header badge
+  document.getElementById('results-badge').textContent = pct + '%';
+  document.getElementById('results-badge').style.background = pass ? 'var(--green-dim)' : 'var(--red-dim)';
+  document.getElementById('results-badge').style.borderColor = pass ? 'rgba(16,185,129,0.2)' : 'rgba(244,63,94,0.2)';
+  document.getElementById('results-badge').style.color = pass ? 'var(--green)' : 'var(--red)';
+
+  // Score ring
+  document.getElementById('r-name').textContent = studentName.toUpperCase();
+  document.getElementById('r-pct').textContent = pct + '%';
+  const ring = document.getElementById('score-ring');
+  ring.className = 'score-ring ' + (pass ? 'pass' : 'fail');
+
+  // Verdict
+  document.getElementById('r-verdict').innerHTML = pass
+    ? `<div class="verdict pass"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>PASS</div>`
+    : `<div class="verdict fail"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>NEEDS REVIEW</div>`;
+
+  // Metrics
+  document.getElementById('m-correct').textContent   = correct;
+  document.getElementById('m-incorrect').textContent = incorrect;
+  document.getElementById('m-blank').textContent     = blank;
+
+  // Section bars
+  document.getElementById('sec-bars').innerHTML = SECTIONS.map(sec => {
+    const total = sec.end - sec.start + 1;
+    const got   = results.slice(sec.start, sec.end + 1).filter(r => r.correct).length;
+    const p     = Math.round(got / total * 100);
+    const cls   = p >= 70 ? 'good' : p >= 50 ? 'mid' : 'low';
+    return `<div class="sec-row">
+      <span class="sec-name">${sec.name}</span>
+      <div class="bar-wrap"><div class="bar-bg"><div class="bar-fg ${cls}" style="width:${p}%"></div></div></div>
+      <span class="sec-frac">${got}/${total}</span>
+    </div>`;
+  }).join('');
+
+  // Q grid
+  document.getElementById('q-grid').innerHTML = results.map((r, i) => {
+    const cls = r.blank ? 'blank' : r.correct ? 'correct' : 'incorrect';
+    const ans = r.blank ? '—' : r.ans;
+    const fix = (!r.blank && !r.correct) ? r.key : '';
+    return `<div class="q-cell ${cls}">
+      <span class="q-n">${i+1}</span>
+      <span class="q-a">${ans}</span>
+      ${fix ? `<span class="q-fix">→${fix}</span>` : ''}
+    </div>`;
+  }).join('');
+
+  // Notes
+  if (notes && notes.trim()) {
+    document.getElementById('notes-box').textContent = notes;
+    document.getElementById('notes-card').style.display = 'block';
+  } else {
+    document.getElementById('notes-card').style.display = 'none';
+  }
+
+  showScreen('results');
+}
+
+// ── HELPERS ─────────────────────────────────────────────
+function newScan() {
+  capturedBase64 = null;
+  showScreen('home');
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.display = 'block';
+  setTimeout(() => { t.style.display = 'none'; }, 4000);
+}
+</script>
+</body>
+</html>
